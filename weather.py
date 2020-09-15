@@ -4,38 +4,52 @@ import datetime, pytz
 import os
 
 class Weather():
-    def __init__(self, weather, temp, wind, sunset):
-        self.weather = weather
-        self.temp = temp
-        self.wind = wind
-        self.sunset = sunset
     
-    def weather_display(self):
-        return f"""
-        
-Today in Melbourne
-Today's weather is {self.weather}
-The temp outside is {self.temp} degrees celcius
-The winds blowing at {self.wind} km/h
-Sunset's at {self.sunset}
+    def __init__(self, data):
+        self.data=data
 
-...get out there while that suns still out"""
+    def get_weather(self):
+        self.weather= self.data["weather"][0]["description"]
+        
+    def get_temp(self):
+        self.temp = self.data["main"]["temp"] - 270
+    
+    def get_wind(self):
+        self.wind = self.data["wind"]["speed"]*3.6
+    
+    def get_sunset(self):
+        timestamp = datetime.datetime.fromtimestamp(self.data["sys"]["sunset"])
+        conv_timestamp=timestamp.astimezone(pytz.timezone("Australia/Melbourne"))
+        self.sunset = conv_timestamp.strftime('%H:%M:%S')
+        
+    def get_city(self):
+        self.city = f"{self.data['name']}, {self.data['sys']['country']}"
+
+    def display_weather(self):
+        print(f"""\nCurrently in {self.city}
+        
+        Weather outside is {self.weather}
+        The temperature is {self.temp} degrees celcius
+        The winds blowing at {self.wind} km/h
+        Sunset's at {self.sunset}
+        """)
         
     
+def get_response():
+    city = input(f"\nWhat city would you like the weather for? (Format: Melbourne,AU)\n")
+    response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city.capitalize()}&appid={os.getenv('API_KEY')}")
+    json_text = json.loads(response.text)
+    if json_text['cod'] == 200:
+            return json_text
+    get_response()
 
+main = Weather(get_response())
+    
+main.get_weather()
+main.get_temp()
+main.get_city()
+main.get_sunset()
+main.get_wind()
+main.display_weather()
 
-response = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q=Melbourne,au&appid=20427f6992caf7e1315b81df74c57fc9")
-json = json.loads(response.text)
-
-api_weather= json["weather"][0]["description"]
-api_temp = json["main"]["temp"] - 270
-api_wind = json["wind"]["speed"]*3.6
-timestamp = datetime.datetime.fromtimestamp(json["sys"]["sunset"])
-conv_timestamp=timestamp.astimezone(pytz.timezone("Australia/Melbourne"))
-api_sunset = conv_timestamp.strftime('%H:%M:%S')
-
-todays_weather = Weather(api_weather, api_temp, api_wind, api_sunset)
-
-
-print(todays_weather.weather_display())
 
