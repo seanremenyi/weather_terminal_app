@@ -44,7 +44,7 @@ This application uses python3.8 and some python3.8modules as well as getting an 
 
 The application can be ran by using the following bash command
 
-`python3.8 weath.py`
+`python3.8 weather.py`
 
 From here the app will ask you for the city you are looking for. 
 
